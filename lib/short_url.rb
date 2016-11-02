@@ -4,25 +4,6 @@ require "short_url/transformer"
 require "short_url/tokenizer"
 
 module ShortUrl
-  # def short_url(column, options={})
-  #   attr_reader :short_url_options
-  #   before_validation :generate_short_url!
-
-  #   @short_url_options = options
-  #   @short_url_options[:column] ||= "token"
-  #   @short_url_options[:alphabet] ||= %w{ 0 1 2 3 4 5 6 7 8 9 A C E F G H J K M N P Q R T U X Y Z }
-  #   @short_url_options[:similarity_threshold] ||= 1
-  #   @short_url_options[:length] ||= 7
-  #   @short_url_options[:max_tries] ||= 1000
-
-  #   define_method("generate_short_url!") do
-      # token = generate_short_url_token
-      # if token
-      #   send("#{@short_url_options[:column]}=", token)
-      # end
-  #   end
-  # end
-
   module Mixin
     extend ActiveSupport::Concern
 
