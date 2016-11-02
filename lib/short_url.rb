@@ -16,10 +16,10 @@ module ShortUrl
   #   @short_url_options[:max_tries] ||= 1000
 
   #   define_method("generate_short_url!") do
-  #     token = generate_short_url_token
-  #     if token
-  #       send("#{@short_url_options[:column]}=", token)
-  #     end
+      # token = generate_short_url_token
+      # if token
+      #   send("#{@short_url_options[:column]}=", token)
+      # end
   #   end
   # end
 
@@ -43,8 +43,8 @@ module ShortUrl
     def generate_short_url_token
       i = 0
       loop do
-        @token = make_possible_token
-        return @token if short_url_is_unique_enough?
+        send("#{self.class.short_url_options[:column]}=", make_possible_token)
+        return true if short_url_is_unique_enough?
         return false if i > self.class.short_url_options[:max_tries]
         i += 0
       end
@@ -65,9 +65,10 @@ module ShortUrl
     def is_similar?(other_token)
       delta = 0
       max_size = self.class.short_url_options[:length] - 1
+      token = send(self.class.short_url_options[:column])
 
       (0..max_size).each do |i|
-        if @token[i] != other_token[i]
+        if token[i] != other_token[i]
           delta += 1
           # If there is more than 1 change, the tokens are considered different enough.
           return false if delta > self.class.short_url_options[:similarity_threshold]
