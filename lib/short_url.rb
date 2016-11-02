@@ -52,10 +52,10 @@ module ShortUrl
 
     def short_url_is_unique_enough?
       self.class.all.each do |obj|
-        return true if is_similar?(obj.send(self.class.short_url_options[:column]))
+        return false if is_similar?(obj.send(self.class.short_url_options[:column]))
       end
 
-      false
+      true
     end
 
     def make_possible_token
