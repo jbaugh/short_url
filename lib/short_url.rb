@@ -1,23 +1,34 @@
 require "short_url/version"
-require "short_url/similar"
-require "short_url/transformer"
-require "short_url/tokenizer"
 
 module ShortUrl
   module Mixin
     extend ActiveSupport::Concern
 
     module ClassMethods
+      # this is actually an attribute on the class
       attr_reader :short_url_options
 
       def short_url(column, options = {})
         @short_url_options = options
         @short_url_options[:column] = column
         @short_url_options[:alphabet] ||= %w{ 0 1 2 3 4 5 6 7 8 9 A C E F G H J K M N P Q R T U X Y Z }
+        @short_url_options[:mappings] ||= { "O" => "0", "I" => "1", "L" => "1", "S" => "5", "B" => "8", "V" => "U" }
         @short_url_options[:similarity_threshold] ||= 1
         @short_url_options[:length] ||= 7
-        @short_url_options[:max_tries] ||= 1000
+        @short_url_options[:max_tries] ||= 10
         before_validation :generate_short_url_token, on: :create
+      end
+
+      def find_by_short_url(short_url)
+        find_by(@short_url_options[:column] => transform_short_url_input(short_url))
+      end
+
+      def transform_short_url_input(input)
+        input = input.to_s.upcase
+        @short_url_options[:mappings].each do |source, target|
+          input.gsub!(source, target)
+        end
+        input
       end
     end
 
@@ -51,7 +62,7 @@ module ShortUrl
       (0..max_size).each do |i|
         if token[i] != other_token[i]
           delta += 1
-          # If there is more than 1 change, the tokens are considered different enough.
+          # If there is more than similarity_threshold change, the tokens are considered different enough.
           return false if delta > self.class.short_url_options[:similarity_threshold]
         end
       end
@@ -62,7 +73,4 @@ module ShortUrl
 end
 
 
-# ActiveSupport.on_load(:active_record) do
-#   extend ShortUrl
-# end
 ActiveRecord::Base.send(:include, ShortUrl::Mixin)
