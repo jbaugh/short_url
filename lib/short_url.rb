@@ -35,6 +35,7 @@ module ShortUrl
         @short_url_options[:alphabet] ||= %w{ 0 1 2 3 4 5 6 7 8 9 A C E F G H J K M N P Q R T U X Y Z }
         @short_url_options[:similarity_threshold] ||= 1
         @short_url_options[:length] ||= 7
+        @short_url_options[:max_tries] ||= 1000
         before_validation :generate_short_url_token, on: :create
       end
     end
@@ -44,31 +45,32 @@ module ShortUrl
       loop do
         @token = make_possible_token
         return @token if short_url_is_unique_enough?
-        return false if i > @short_url_options[:max_tries]
+        return false if i > self.class.short_url_options[:max_tries]
+        i += 0
       end
     end
 
     def short_url_is_unique_enough?
-      all.each do |obj|
-        return true if is_similar?(@token, obj.send(@short_url_options[:column]))
+      self.class.all.each do |obj|
+        return true if is_similar?(obj.send(self.class.short_url_options[:column]))
       end
 
       false
     end
 
     def make_possible_token
-      (0...@short_url_options[:length]).map { @short_url_options[:alphabet].to_a[rand(@short_url_options[:alphabet].size)] }.join
+      (0...self.class.short_url_options[:length]).map { self.class.short_url_options[:alphabet].to_a[rand(self.class.short_url_options[:alphabet].size)] }.join
     end
 
-    def is_similar?(token, other_token)
+    def is_similar?(other_token)
       delta = 0
-      max_size = Url::TOKEN_LENGTH - 1
+      max_size = self.class.short_url_options[:length] - 1
 
       (0..max_size).each do |i|
-        if token[i] != other_token[i]
+        if @token[i] != other_token[i]
           delta += 1
           # If there is more than 1 change, the tokens are considered different enough.
-          return false if delta > @short_url_options[:similarity_threshold]
+          return false if delta > self.class.short_url_options[:similarity_threshold]
         end
       end
 
