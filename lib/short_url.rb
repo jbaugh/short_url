@@ -1,3 +1,4 @@
+require 'active_support/all'
 require "short_url/version"
 
 module ShortUrl
@@ -13,7 +14,7 @@ module ShortUrl
         @short_url_options[:column] = column
         @short_url_options[:alphabet] ||= %w{ 0 1 2 3 4 5 6 7 8 9 A C E F G H J K M N P Q R T U X Y Z }
         @short_url_options[:mappings] ||= { "O" => "0", "I" => "1", "L" => "1", "S" => "5", "B" => "8", "V" => "U" }
-        @short_url_options[:similarity_threshold] ||= 1
+        @short_url_options[:similarity_threshold] ||= 0
         @short_url_options[:length] ||= 7
         @short_url_options[:max_tries] ||= 10
         before_validation :generate_short_url_token, on: :create
@@ -43,8 +44,13 @@ module ShortUrl
     end
 
     def short_url_is_unique_enough?
-      self.class.all.each do |obj|
-        return false if is_similar?(obj.send(self.class.short_url_options[:column]))
+      if self.class.short_url_options[:similarity_threshold] == 0
+        token = send(self.class.short_url_options[:column])
+        return self.class.where(self.class.short_url_options[:column] => token).any?
+      else
+        self.class.all.each do |obj|
+          return false if is_similar?(obj.send(self.class.short_url_options[:column]))
+        end
       end
 
       true
