@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = "Shortens URLs"
   spec.description   = "Shortens URLs"
-  spec.homepage      = "http://google.com"
+  spec.homepage      = "https://github.com/jbaugh/short_url/"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

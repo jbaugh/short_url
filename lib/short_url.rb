@@ -44,10 +44,13 @@ module ShortUrl
     end
 
     def short_url_is_unique_enough?
+      # Check for exact match if similarity_threshold is 0
       if self.class.short_url_options[:similarity_threshold] == 0
         token = send(self.class.short_url_options[:column])
         return self.class.where(self.class.short_url_options[:column] => token).any?
       else
+        # Otherwise go through all records to see if there is a similar match
+        # TODO: Find a suitable LSH for this
         self.class.all.each do |obj|
           return false if is_similar?(obj.send(self.class.short_url_options[:column]))
         end
